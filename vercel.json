@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CommCRM — WhatsApp & SMS Lead Platform</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f9f8f6;--bg2:#f2f0ec;--bg3:#e8e5e0;
+  --fg:#1a1917;--fg2:#6b6860;--fg3:#a8a59f;
+  --border:#ddd9d2;--border2:#ccc8c0;
+  --green:#1D9E75;--green-bg:#E1F5EE;--green-fg:#085041;
+  --blue:#185FA5;--blue-bg:#E6F1FB;--blue-fg:#0C447C;
+  --amber:#BA7517;--amber-bg:#FAEEDA;--amber-fg:#633806;
+  --purple:#534AB7;--purple-bg:#EEEDFE;--purple-fg:#3C3489;
+  --red:#A32D2D;--red-bg:#FCEBEB;--red-fg:#791F1F;
+  --teal-bg:#E1F5EE;--teal-fg:#085041;
+  --r:8px;--rl:12px;
+  font-family:'DM Sans',sans-serif;
+}
+body{background:var(--bg);color:var(--fg);min-height:100vh}
+#app{display:flex;height:100vh;overflow:hidden}
+#sidebar{width:200px;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--bg2);flex-shrink:0}
+.brand{padding:18px 16px 14px;font-size:15px;font-weight:500;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px}
+.brand-icon{width:28px;height:28px;background:var(--fg);border-radius:6px;display:flex;align-items:center;justify-content:center}
+.brand-icon svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+nav{flex:1;padding:8px 6px;display:flex;flex-direction:column;gap:1px}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--r);cursor:pointer;font-size:13px;color:var(--fg2);transition:all 0.12s;user-select:none}
+.ni:hover{background:var(--bg);color:var(--fg)}
+.ni.active{background:var(--bg);color:var(--fg);font-weight:500}
+.ni svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.nbadge{margin-left:auto;background:var(--red-bg);color:var(--red-fg);font-size:10px;padding:1px 6px;border-radius:99px;font-weight:500}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#topbar{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg);flex-shrink:0}
+#topbar h2{font-size:15px;font-weight:500;flex:1}
+.search-box{font-size:13px;padding:7px 11px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg2);color:var(--fg);width:200px;font-family:inherit}
+.search-box:focus{outline:none;border-color:var(--border2)}
+.btn{font-size:13px;padding:7px 13px;border-radius:var(--r);border:1px solid var(--border);background:transparent;color:var(--fg);cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit;white-space:nowrap;transition:all 0.12s}
+.btn:hover{background:var(--bg2);border-color:var(--border2)}
+.btn:active{transform:scale(0.98)}
+.btn.primary{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.btn.primary:hover{opacity:0.85}
+.btn.sm{font-size:12px;padding:5px 10px}
+#content{flex:1;overflow-y:auto;padding:18px;background:var(--bg)}
+.section{display:none}.section.active{display:block}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.stat-card{background:var(--bg2);border-radius:var(--r);padding:13px 15px;border:1px solid var(--border)}
+.stat-card .lbl{font-size:11px;color:var(--fg3);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.04em}
+.stat-card .val{font-size:24px;font-weight:500}
+.stat-card .sub{font-size:11px;color:var(--green);margin-top:3px}
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--rl);padding:15px;margin-bottom:12px}
+.card h3{font-size:12px;font-weight:500;color:var(--fg3);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.05em}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px}
+.pcol{background:var(--bg2);border-radius:var(--r);padding:9px;min-height:220px;border:1px solid var(--border)}
+.pcol-hd{font-size:11px;font-weight:500;color:var(--fg3);margin-bottom:8px;display:flex;justify-content:space-between;text-transform:uppercase;letter-spacing:0.04em}
+.deal{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:9px;margin-bottom:6px;cursor:grab;font-size:12px;transition:border-color 0.1s;user-select:none}
+.deal:hover{border-color:var(--border2)}
+.deal .dn{font-weight:500;margin-bottom:3px;font-size:13px}
+.deal .dv{color:var(--green);font-size:11px;margin-bottom:5px}
+.chip{font-size:10px;padding:2px 7px;border-radius:99px;border:1px solid var(--border);color:var(--fg3);display:inline-block;font-weight:500}
+.chip.wa{background:var(--teal-bg);color:var(--teal-fg);border-color:#9FE1CB}
+.chip.sms{background:var(--blue-bg);color:var(--blue-fg);border-color:#B5D4F4}
+.chip.hot{background:var(--amber-bg);color:var(--amber-fg);border-color:#FAC775}
+.sbadge{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:500}
+.s0{background:var(--teal-bg);color:var(--teal-fg)}
+.s1{background:var(--blue-bg);color:var(--blue-fg)}
+.s2{background:var(--amber-bg);color:var(--amber-fg)}
+.s3{background:var(--purple-bg);color:var(--purple-fg)}
+.s4{background:var(--green-bg);color:var(--green-fg)}
+.ct{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+.ct th{text-align:left;font-size:11px;font-weight:500;color:var(--fg3);padding:7px 9px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:0.04em}
+.ct td{padding:10px 9px;border-bottom:1px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ct tr:hover td{background:var(--bg2);cursor:pointer}
+.avatar{width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0}
+.score-bar{height:4px;border-radius:2px;background:var(--bg3);width:55px;display:inline-block;vertical-align:middle;overflow:hidden}
+.score-fill{height:100%;border-radius:2px}
+.tag{font-size:11px;padding:2px 8px;border-radius:99px;border:1px solid var(--border);color:var(--fg3);cursor:pointer;display:inline-block;margin:0 3px 4px 0;transition:all 0.1s}
+.tag.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.inbox-wrap{display:grid;grid-template-columns:220px 1fr;border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;height:calc(100vh - 120px)}
+.convlist{border-right:1px solid var(--border);overflow-y:auto;background:var(--bg2)}
+.ci{padding:11px 13px;border-bottom:1px solid var(--border);cursor:pointer;font-size:12px;transition:background 0.1s}
+.ci:hover,.ci.sel{background:var(--bg)}
+.ci .cn{font-weight:500;font-size:13px;margin-bottom:2px}
+.ci .meta{display:flex;justify-content:space-between;align-items:center}
+.ci .time{font-size:10px;color:var(--fg3)}
+.ci .prev{color:var(--fg3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;margin-top:3px}
+.chat-area{display:flex;flex-direction:column;height:100%}
+.chat-hd{padding:11px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;background:var(--bg)}
+.chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:9px}
+.msg{max-width:72%;font-size:13px}
+.msg.in{align-self:flex-start}.msg.out{align-self:flex-end}
+.bubble{padding:8px 12px;border-radius:11px;line-height:1.5}
+.msg.in .bubble{background:var(--bg2);color:var(--fg);border-bottom-left-radius:2px}
+.msg.out .bubble{background:var(--fg);color:var(--bg);border-bottom-right-radius:2px}
+.msg .ts{font-size:10px;color:var(--fg3);margin-top:3px}
+.msg.out .ts{text-align:right}
+.ai-bar{padding:7px 13px;background:var(--bg2);border-top:1px solid var(--border);display:flex;gap:6px;align-items:center;flex-wrap:wrap;flex-shrink:0}
+.ai-pill{background:var(--blue-bg);color:var(--blue-fg);padding:3px 9px;border-radius:99px;font-size:11px;cursor:pointer;font-weight:500}
+.ai-pill:hover{opacity:0.75}
+.chat-input{padding:10px 13px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;flex-shrink:0;background:var(--bg)}
+.chat-input input{flex:1;font-size:13px;padding:8px 11px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg2);color:var(--fg);font-family:inherit}
+.chat-input input:focus{outline:none;border-color:var(--border2)}
+.ch-sel{font-size:12px;padding:7px 9px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg2);color:var(--fg);font-family:inherit}
+.bc-form label{font-size:12px;color:var(--fg3);display:block;margin-bottom:4px;margin-top:11px}
+.bc-form select,.bc-form textarea,.bc-form input[type=text]{width:100%;font-size:13px;padding:8px 11px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg2);color:var(--fg);font-family:inherit}
+.bc-form textarea{resize:vertical;min-height:80px}
+.flow-row{display:flex;align-items:flex-start;gap:10px;background:var(--bg2);border-radius:var(--r);padding:11px 13px;margin-bottom:8px;border:1px solid var(--border)}
+.flow-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.flow-form select,.flow-form input{width:100%;font-size:13px;padding:8px 11px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg2);color:var(--fg);font-family:inherit}
+.mini-bars{display:flex;align-items:flex-end;gap:5px;height:60px;margin:8px 0}
+.mbar{flex:1;border-radius:3px 3px 0 0;background:var(--bg3)}
+.mbar.hi{background:var(--green)}
+.act-row{display:flex;gap:9px;align-items:flex-start;font-size:12px}
+.act-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.hot-row{display:flex;align-items:center;gap:10px;padding:9px 11px;background:var(--bg2);border-radius:var(--r);border:1px solid var(--border)}
+.camp-row{background:var(--bg2);border-radius:var(--r);padding:10px 12px;margin-bottom:8px;border:1px solid var(--border)}
+@keyframes dots{0%,80%,100%{opacity:0.2}40%{opacity:1}}
+.typing span{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--fg3);margin:0 1px;animation:dots 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+#capture-overlay{display:none;position:fixed;inset:0;background:rgba(26,25,23,0.55);z-index:1000;align-items:center;justify-content:center}
+#capture-overlay.open{display:flex}
+.capture-modal{background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:28px 30px;width:420px;max-width:96vw}
+.capture-modal h2{font-size:18px;font-weight:500;margin-bottom:4px}
+.capture-modal p{font-size:13px;color:var(--fg3);margin-bottom:20px}
+.cf-field{margin-bottom:14px}
+.cf-field label{font-size:12px;color:var(--fg3);display:block;margin-bottom:5px}
+.cf-field input,.cf-field select,.cf-field textarea{width:100%;font-size:13px;padding:9px 12px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg2);color:var(--fg);font-family:inherit}
+.cf-field input:focus,.cf-field select:focus{outline:none;border-color:var(--border2)}
+.cf-field textarea{resize:vertical;min-height:60px;font-family:inherit}
+.cf-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#cf-success{display:none;text-align:center;padding:20px 0}
+#cf-success .check{width:48px;height:48px;background:var(--green-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:22px;color:var(--green)}
+</style>
+</head>
+<body>
+
+<div id="capture-overlay" onclick="if(event.target===this)closeCapture()">
+  <div class="capture-modal">
+    <div id="cf-form-wrap">
+      <h2>New lead</h2>
+      <p>Add a contact manually into the pipeline.</p>
+      <div class="cf-row">
+        <div class="cf-field"><label>Full name *</label><input type="text" id="cf-name" placeholder="Sara Al-Hassan"></div>
+        <div class="cf-field"><label>Phone *</label><input type="text" id="cf-phone" placeholder="+961 70 000 000"></div>
+      </div>
+      <div class="cf-row">
+        <div class="cf-field"><label>Channel</label><select id="cf-ch"><option>WhatsApp</option><option>SMS</option></select></div>
+        <div class="cf-field"><label>Source</label><select id="cf-src"><option>Instagram</option><option>Website form</option><option>Referral</option><option>Cold outreach</option><option>Other</option></select></div>
+      </div>
+      <div class="cf-field"><label>Interest / notes</label><textarea id="cf-note" placeholder="Interested in…"></textarea></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px">
+        <button class="btn" onclick="closeCapture()">Cancel</button>
+        <button class="btn primary" onclick="submitCapture()">Add lead</button>
+      </div>
+      <div id="cf-err" style="font-size:12px;color:var(--red);margin-top:8px"></div>
+    </div>
+    <div id="cf-success">
+      <div class="check">✓</div>
+      <div style="font-size:15px;font-weight:500;margin-bottom:4px">Lead added!</div>
+      <div style="font-size:13px;color:var(--fg3);margin-bottom:16px">Automation flows triggered.</div>
+      <button class="btn primary" onclick="closeCapture()">Done</button>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+  <div id="sidebar">
+    <div class="brand">
+      <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      CommCRM
+    </div>
+    <nav id="sidenav">
+      <div class="ni active" data-s="dashboard" onclick="go('dashboard')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</div>
+      <div class="ni" data-s="inbox" onclick="go('inbox')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Inbox <span class="nbadge" id="inbox-badge">5</span></div>
+      <div class="ni" data-s="pipeline" onclick="go('pipeline')"><svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Pipeline</div>
+      <div class="ni" data-s="contacts" onclick="go('contacts')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Contacts</div>
+      <div class="ni" data-s="broadcast" onclick="go('broadcast')"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 1 0 8M14 10.5a2 2 0 0 1 0 3"/><path d="M3 11v2a1 1 0 0 0 1 1h2l4 4V7L6 11H4a1 1 0 0 0-1 1z"/></svg>Broadcast</div>
+      <div class="ni" data-s="automation" onclick="go('automation')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>Automation</div>
+      <div class="ni" data-s="capture-form" onclick="go('capture-form')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Lead form</div>
+    </nav>
+  </div>
+
+  <div id="main">
+    <div id="topbar">
+      <h2 id="ptitle">Dashboard</h2>
+      <input class="search-box" type="text" placeholder="Search contacts, deals…" oninput="handleSearch(this.value)">
+      <button class="btn primary" onclick="handleAdd()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span id="addlbl">Add lead</span></button>
+    </div>
+    <div id="content">
+
+      <!-- DASHBOARD -->
+      <div class="section active" id="s-dashboard">
+        <div class="stat-grid">
+          <div class="stat-card"><div class="lbl">Contacts</div><div class="val" id="d-ct">6</div><div class="sub">↑ 3 this week</div></div>
+          <div class="stat-card"><div class="lbl">Active deals</div><div class="val" id="d-deal">5</div><div class="sub">$42k pipeline</div></div>
+          <div class="stat-card"><div class="lbl">Messages sent</div><div class="val">478</div><div class="sub">WhatsApp + SMS</div></div>
+          <div class="stat-card"><div class="lbl">Close rate</div><div class="val">34%</div><div class="sub">↑ 4% vs last mo.</div></div>
+        </div>
+        <div class="two-col">
+          <div class="card"><h3>Pipeline overview</h3><div class="mini-bars" id="pipebars"></div><div style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--fg3);margin-top:6px" id="pipelegend"></div></div>
+          <div class="card"><h3>Recent activity</h3><div id="actfeed" style="display:flex;flex-direction:column;gap:10px"></div></div>
+        </div>
+        <div class="card"><h3>Hot leads — action needed</h3><div id="hotleads" style="display:flex;flex-direction:column;gap:7px"></div></div>
+      </div>
+
+      <!-- INBOX -->
+      <div class="section" id="s-inbox">
+        <div class="inbox-wrap">
+          <div class="convlist" id="convlist"></div>
+          <div class="chat-area">
+            <div class="chat-hd">
+              <div class="avatar" id="chav" style="background:#E1F5EE;color:#085041;font-size:10px">—</div>
+              <div><div style="font-size:13px;font-weight:500" id="chname">Select a conversation</div><div style="font-size:11px;color:var(--fg3)" id="chsub">—</div></div>
+              <div style="margin-left:auto;display:flex;gap:6px">
+                <button class="btn sm" onclick="promoteStage()">Advance stage →</button>
+                <button class="btn sm primary" id="ai-reply-btn" onclick="aiReply()">✦ AI reply</button>
+              </div>
+            </div>
+            <div class="chat-msgs" id="chatmsgs"></div>
+            <div class="ai-bar" id="aibar"><span style="font-size:11px;color:var(--fg3)">✦ Suggested:</span></div>
+            <div class="chat-input">
+              <select class="ch-sel" id="chsel"><option>WhatsApp</option><option>SMS</option></select>
+              <input type="text" placeholder="Type a message…" id="msginp" onkeydown="if(event.key==='Enter')sendMsg()">
+              <button class="btn primary sm" onclick="sendMsg()">Send →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PIPELINE -->
+      <div class="section" id="s-pipeline">
+        <div class="pipeline" id="board"></div>
+        <p style="font-size:12px;color:var(--fg3)">Drag cards between columns · Click a card to open chat</p>
+      </div>
+
+      <!-- CONTACTS -->
+      <div class="section" id="s-contacts">
+        <div style="margin-bottom:10px" id="tagfilters"></div>
+        <div style="overflow-x:auto">
+          <table class="ct">
+            <thead><tr><th style="width:160px">Name</th><th style="width:130px">Phone</th><th style="width:80px">Channel</th><th style="width:80px">Stage</th><th style="width:90px">Score</th><th style="width:80px">Last msg</th><th style="width:65px"></th></tr></thead>
+            <tbody id="ctbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- BROADCAST -->
+      <div class="section" id="s-broadcast">
+        <div class="two-col">
+          <div class="card" style="margin-bottom:0">
+            <h3>New broadcast</h3>
+            <div class="bc-form">
+              <label>Channel</label><select id="bcch"><option>WhatsApp</option><option>SMS</option><option>Both</option></select>
+              <label>Segment</label><select id="bcseg"><option>All contacts</option><option>Hot leads (score ≥80)</option><option>Nurture stage</option><option>No reply in 7 days</option></select>
+              <label>Message</label><textarea id="bcmsg" placeholder="Hi {{name}}, following up on…"></textarea>
+              <div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap" id="tmplpills"></div>
+              <div style="display:flex;gap:8px;margin-top:14px">
+                <button class="btn sm" onclick="previewBC()">Preview</button>
+                <button class="btn sm" id="ai-bc-btn" onclick="aiBroadcast()">✦ AI write</button>
+                <button class="btn primary sm" onclick="sendBC()">Send →</button>
+              </div>
+              <div id="bcres" style="font-size:12px;margin-top:8px"></div>
+            </div>
+          </div>
+          <div class="card" style="margin-bottom:0"><h3>Past campaigns</h3><div id="pastcamp"></div></div>
+        </div>
+      </div>
+
+      <!-- AUTOMATION -->
+      <div class="section" id="s-automation">
+        <div class="two-col">
+          <div class="card" style="margin-bottom:0"><h3>Active flows</h3><div id="flowlist"></div></div>
+          <div class="card flow-form" style="margin-bottom:0">
+            <h3>New flow</h3>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div><label style="font-size:12px;color:var(--fg3);display:block;margin-bottom:4px">Trigger</label><select id="ftrig"><option>New lead captured</option><option>Keyword received</option><option>Stage changed</option><option>No reply in 24h</option><option>Form submitted</option></select></div>
+              <div><label style="font-size:12px;color:var(--fg3);display:block;margin-bottom:4px">Action</label><select id="fact"><option>Send WhatsApp message</option><option>Send SMS</option><option>Assign to agent</option><option>Move pipeline stage</option><option>Add tag</option><option>Notify team</option></select></div>
+              <div><label style="font-size:12px;color:var(--fg3);display:block;margin-bottom:4px">Value / message</label><input type="text" placeholder="Hi {{name}}, we got your message!" id="fmsg"></div>
+              <button class="btn primary" onclick="addFlow()" style="width:100%">+ Add flow</button>
+              <div id="fres" style="font-size:12px;color:var(--green)"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LEAD FORM PAGE -->
+      <div class="section" id="s-capture-form">
+        <div class="two-col">
+          <div class="card" style="margin-bottom:0">
+            <h3>Embeddable lead capture form</h3>
+            <p style="font-size:13px;color:var(--fg3);margin-bottom:14px">Embed on your website or share directly. Leads flow straight into your pipeline.</p>
+            <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:22px 24px">
+              <div style="font-size:16px;font-weight:500;margin-bottom:4px" id="form-title-preview">Get in touch</div>
+              <div style="font-size:13px;color:var(--fg3);margin-bottom:18px" id="form-sub-preview">We'll reach out via WhatsApp or SMS within 24 hours.</div>
+              <div class="cf-field"><label>Full name</label><input type="text" placeholder="Your name"></div>
+              <div class="cf-field"><label>Phone number</label><input type="text" placeholder="+961 70 000 000"></div>
+              <div class="cf-row">
+                <div class="cf-field"><label>Channel</label><select><option>WhatsApp</option><option>SMS</option></select></div>
+                <div class="cf-field"><label>Interest</label><select><option>General inquiry</option><option>Real estate</option><option>Services</option><option>Products</option></select></div>
+              </div>
+              <div class="cf-field"><label>Message</label><textarea placeholder="Tell us what you're looking for…"></textarea></div>
+              <button class="btn primary" style="width:100%;justify-content:center;padding:10px" id="form-cta-preview">Send message →</button>
+            </div>
+          </div>
+          <div class="card" style="margin-bottom:0">
+            <h3>Form settings</h3>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div class="cf-field"><label>Form title</label><input type="text" value="Get in touch" oninput="document.getElementById('form-title-preview').textContent=this.value"></div>
+              <div class="cf-field"><label>Subtitle</label><input type="text" value="We'll reach out via WhatsApp or SMS within 24 hours." oninput="document.getElementById('form-sub-preview').textContent=this.value"></div>
+              <div class="cf-field"><label>CTA button text</label><input type="text" value="Send message →" oninput="document.getElementById('form-cta-preview').textContent=this.value"></div>
+              <div class="cf-field"><label>Default stage on submit</label><select><option>Capture</option><option>Qualify</option></select></div>
+              <div style="border-top:1px solid var(--border);padding-top:14px">
+                <div style="font-size:12px;color:var(--fg3);margin-bottom:8px;font-weight:500;text-transform:uppercase;letter-spacing:0.04em">Embed code</div>
+                <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--fg3);line-height:1.6;word-break:break-all" id="embed-code">&lt;iframe src="https://your-project.vercel.app" width="100%" height="520" frameborder="0"&gt;&lt;/iframe&gt;</div>
+                <button class="btn sm" style="margin-top:8px;width:100%;justify-content:center" onclick="copyEmbed()">Copy embed code</button>
+              </div>
+              <button class="btn primary" style="justify-content:center" onclick="openCapture()">+ Add lead manually</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const STAGES=['capture','qualify','nurture','propose','closed'];
+const SLABELS={capture:'Capture',qualify:'Qualify',nurture:'Nurture',propose:'Propose',closed:'Closed'};
+const SCLS={capture:'s0',qualify:'s1',nurture:'s2',propose:'s3',closed:'s4'};
+
+const contacts=[
+  {id:1,name:'Sara Al-Hassan',ini:'SA',phone:'+961 70 111 222',ch:'WhatsApp',stage:'nurture',score:82,last:'2h ago',tags:['hot','real-estate'],bg:'#E1F5EE',tc:'#085041',source:'Instagram',msgs:[
+    {d:'in',t:'Hi, I saw your listing on Instagram. Is the Achrafieh apartment still available?',ts:'10:02'},
+    {d:'out',t:'Hi Sara! Yes — 3BR, great view, $1,800/mo. Want to schedule a viewing?',ts:'10:05'},
+    {d:'in',t:'Can we do Thursday afternoon?',ts:'10:09'},
+    {d:'out',t:'Thursday 3pm works! Sending you the address now.',ts:'10:11'}
+  ]},
+  {id:2,name:'Karim Mansour',ini:'KM',phone:'+961 71 333 444',ch:'SMS',stage:'propose',score:91,last:'30m ago',tags:['hot','enterprise'],bg:'#E6F1FB',tc:'#0C447C',source:'Referral',msgs:[
+    {d:'in',t:'Following up on the software demo last week.',ts:'09:15'},
+    {d:'out',t:'Hi Karim! Putting the proposal together now — will share by EOD.',ts:'09:20'},
+    {d:'in',t:'Perfect. Budget approved, just need the deck.',ts:'09:45'}
+  ]},
+  {id:3,name:'Lara Khoury',ini:'LK',phone:'+961 76 555 666',ch:'WhatsApp',stage:'qualify',score:55,last:'1d ago',tags:['warm'],bg:'#FAEEDA',tc:'#633806',source:'Website form',msgs:[
+    {d:'in',t:'Hello, found you through a friend. Interested in your services.',ts:'Yesterday 14:30'},
+    {d:'out',t:'Hi Lara! Great to connect. What are you looking for?',ts:'Yesterday 14:35'}
+  ]},
+  {id:4,name:'Omar Farhat',ini:'OF',phone:'+961 78 777 888',ch:'WhatsApp',stage:'capture',score:30,last:'3d ago',tags:['cold'],bg:'#F5F3EF',tc:'#6b6860',source:'Cold outreach',msgs:[
+    {d:'in',t:'I filled out your form online. Please contact me.',ts:'3d ago'}
+  ]},
+  {id:5,name:'Maya Nassar',ini:'MN',phone:'+961 79 999 000',ch:'SMS',stage:'closed',score:100,last:'5d ago',tags:['vip','closed'],bg:'#EAF3DE',tc:'#27500A',source:'Referral',msgs:[
+    {d:'out',t:'Hi Maya! Contract signed. Welcome aboard!',ts:'5d ago'},
+    {d:'in',t:'Thank you so much! Looking forward to it.',ts:'5d ago'}
+  ]},
+  {id:6,name:'Rami Sleiman',ini:'RS',phone:'+961 70 222 333',ch:'WhatsApp',stage:'nurture',score:76,last:'4h ago',tags:['warm','retail'],bg:'#EEEDFE',tc:'#3C3489',source:'Instagram',msgs:[
+    {d:'in',t:'Saw your ad. What packages do you offer?',ts:'08:00'},
+    {d:'out',t:'Hi Rami! We have 3 packages starting from $299. Want me to send the details?',ts:'08:10'},
+    {d:'in',t:'Yes please.',ts:'08:12'}
+  ]}
+];
+
+let flows=[
+  {trig:'New lead captured',act:'Send WhatsApp message',msg:"Hi {{name}}, thanks for reaching out! We'll be in touch shortly.",ic:'#E1F5EE',tc:'#085041',icon:'▶'},
+  {trig:'No reply in 24h',act:'Send SMS',msg:"Hi {{name}}, just checking in — any questions?",ic:'#FAEEDA',tc:'#633806',icon:'⏰'},
+  {trig:'Keyword received',act:'Assign to agent',msg:'price / buy / interested / cost',ic:'#EEEDFE',tc:'#3C3489',icon:'✦'},
+];
+
+const campaigns=[
+  {name:'June follow-up',ch:'WhatsApp',sent:148,opened:102,replied:34,date:'Jun 3'},
+  {name:'SMS re-engagement',ch:'SMS',sent:80,opened:80,replied:18,date:'May 28'},
+  {name:'New listing alert',ch:'WhatsApp',sent:220,opened:195,replied:67,date:'May 15'},
+];
+
+const templates=['Greeting','Follow-up','Proposal ready','Meeting confirm','Deal closed'];
+const tmplMsgs={
+  'Greeting':"Hi {{name}}, great to connect! How can we help you today?",
+  'Follow-up':"Hi {{name}}, just following up — any questions?",
+  'Proposal ready':"Hi {{name}}, your proposal is ready. When can we connect?",
+  'Meeting confirm':"Hi {{name}}, confirming our meeting tomorrow. Looking forward!",
+  'Deal closed':"Hi {{name}}, welcome aboard! Excited to work with you."
+};
+
+const activity=[
+  {text:'Sara Al-Hassan replied on WhatsApp',time:'2h ago',color:'#1D9E75'},
+  {text:'Karim Mansour replied via SMS',time:'30m ago',color:'#185FA5'},
+  {text:'Lara Khoury moved to Qualify',time:'1d ago',color:'#534AB7'},
+  {text:'Maya Nassar deal closed — $6,200',time:'5d ago',color:'#1D9E75'},
+  {text:'Rami Sleiman asked about packages',time:'4h ago',color:'#534AB7'},
+];
+
+let activeConv=null,selTags=[],dragId=null;
+const addLbls={dashboard:'Add lead',inbox:'New conversation',pipeline:'Add deal',contacts:'Add contact',broadcast:'New campaign',automation:'New flow','capture-form':'Add lead manually'};
+const titles={dashboard:'Dashboard',inbox:'Inbox',pipeline:'Pipeline',contacts:'Contacts',broadcast:'Broadcast',automation:'Automation','capture-form':'Lead form'};
+
+function go(s){
+  document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));
+  document.getElementById('s-'+s).classList.add('active');
+  document.querySelector('[data-s="'+s+'"]').classList.add('active');
+  document.getElementById('ptitle').textContent=titles[s];
+  document.getElementById('addlbl').textContent=addLbls[s];
+  if(s==='inbox')renderInbox();
+  if(s==='pipeline')renderPipeline();
+  if(s==='contacts')renderContacts();
+  if(s==='broadcast')renderBroadcast();
+  if(s==='automation')renderAutomation();
+  if(s==='dashboard')renderDashboard();
+}
+
+function handleSearch(v){if(v.length>1)console.log('Search:',v);}
+function handleAdd(){const s=document.querySelector('.ni.active').dataset.s;if(['dashboard','contacts','pipeline','capture-form'].includes(s))openCapture();}
+
+async function callAI(prompt){
+  const res=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,messages:[{role:'user',content:prompt}]})});
+  const data=await res.json();
+  return data.content?.[0]?.text||null;
+}
+
+function renderDashboard(){
+  const counts={};STAGES.forEach(s=>{counts[s]=contacts.filter(c=>c.stage===s).length;});
+  const max=Math.max(...Object.values(counts),1);
+  document.getElementById('d-ct').textContent=contacts.length;
+  document.getElementById('d-deal').textContent=contacts.filter(c=>c.stage!=='closed').length;
+  document.getElementById('pipebars').innerHTML=STAGES.map(s=>`<div class="mbar${counts[s]===max?' hi':''}" style="height:${Math.round(counts[s]/max*56)}px" title="${SLABELS[s]}: ${counts[s]}"></div>`).join('');
+  document.getElementById('pipelegend').innerHTML=STAGES.map(s=>`<span>${SLABELS[s]} <b style="color:var(--fg)">${counts[s]}</b></span>`).join('');
+  document.getElementById('actfeed').innerHTML=activity.map(a=>`<div class="act-row"><div class="act-dot" style="background:${a.color}"></div><div><div>${a.text}</div><div style="color:var(--fg3);font-size:10px;margin-top:1px">${a.time}</div></div></div>`).join('');
+  const hot=contacts.filter(c=>c.score>=75&&c.stage!=='closed');
+  document.getElementById('hotleads').innerHTML=hot.map(c=>`<div class="hot-row"><div class="avatar" style="background:${c.bg};color:${c.tc}">${c.ini}</div><div style="flex:1"><span style="font-size:13px;font-weight:500">${c.name}</span> <span class="sbadge ${SCLS[c.stage]}">${SLABELS[c.stage]}</span><div style="font-size:11px;color:var(--fg3);margin-top:2px">${c.ch} · Score ${c.score} · ${c.last}</div></div><button class="btn sm" onclick="go('inbox');setTimeout(()=>openConv(${c.id}),60)">Reply →</button></div>`).join('');
+}
+
+function renderInbox(){
+  document.getElementById('convlist').innerHTML=contacts.map(c=>`<div class="ci${c.id===activeConv?' sel':''}" onclick="openConv(${c.id})"><div class="meta"><span class="cn">${c.name}</span><span class="time">${c.last}</span></div><div><span class="chip ${c.ch==='WhatsApp'?'wa':'sms'}">${c.ch}</span></div><div class="prev">${c.msgs[c.msgs.length-1].t}</div></div>`).join('');
+  if(activeConv)openConv(activeConv);else openConv(contacts[0].id);
+}
+
+function openConv(id){
+  activeConv=id;
+  const c=contacts.find(x=>x.id===id);
+  document.querySelectorAll('.ci').forEach((el,i)=>{if(contacts[i])el.classList.toggle('sel',contacts[i].id===id);});
+  document.getElementById('chav').textContent=c.ini;
+  document.getElementById('chav').style.background=c.bg;
+  document.getElementById('chav').style.color=c.tc;
+  document.getElementById('chname').textContent=c.name;
+  document.getElementById('chsub').textContent=`${c.ch} · ${c.phone} · Score ${c.score} · ${SLABELS[c.stage]}`;
+  const cm=document.getElementById('chatmsgs');
+  cm.innerHTML=c.msgs.map(m=>`<div class="msg ${m.d==='in'?'in':'out'}"><div class="bubble">${m.t}</div><div class="ts">${m.ts}</div></div>`).join('');
+  cm.scrollTop=cm.scrollHeight;
+  const suggs=['Send follow-up','Share pricing','Schedule a call','Send proposal','Check in'];
+  document.getElementById('aibar').innerHTML=`<span style="font-size:11px;color:var(--fg3)">✦ Suggested:</span>${suggs.slice(0,3).map(s=>`<span class="ai-pill" onclick="fillMsg('${s}')">${s}</span>`).join('')}`;
+}
+
+function fillMsg(s){document.getElementById('msginp').value=s+': ';document.getElementById('msginp').focus();}
+
+function sendMsg(){
+  const inp=document.getElementById('msginp');const v=inp.value.trim();
+  if(!v||!activeConv)return;
+  const c=contacts.find(x=>x.id===activeConv);
+  c.msgs.push({d:'out',t:v,ts:'Just now'});c.last='Just now';
+  inp.value='';renderInbox();
+}
+
+function promoteStage(){
+  if(!activeConv)return;
+  const c=contacts.find(x=>x.id===activeConv);
+  const i=STAGES.indexOf(c.stage);if(i<STAGES.length-1)c.stage=STAGES[i+1];
+  document.getElementById('chsub').textContent=`${c.ch} · ${c.phone} · Score ${c.score} · ${SLABELS[c.stage]}`;
+  renderDashboard();
+}
+
+async function aiReply(){
+  if(!activeConv)return;
+  const c=contacts.find(x=>x.id===activeConv);
+  const btn=document.getElementById('ai-reply-btn');
+  btn.textContent='✦ Thinking…';btn.disabled=true;
+  const history=c.msgs.map(m=>`${m.d==='in'?c.name:'Agent'}: ${m.t}`).join('\n');
+  const prompt=`You are a sales agent. Contact: ${c.name}, Stage: ${SLABELS[c.stage]}, Score: ${c.score}.\nConversation:\n${history}\n\nWrite ONE short friendly reply (2-3 sentences) to move this deal forward. Just the message text.`;
+  const cm=document.getElementById('chatmsgs');
+  const typing=document.createElement('div');
+  typing.className='msg out';
+  typing.innerHTML='<div class="bubble typing"><span></span><span></span><span></span></div>';
+  cm.appendChild(typing);cm.scrollTop=cm.scrollHeight;
+  try{
+    const text=await callAI(prompt);
+    typing.remove();
+    if(text)document.getElementById('msginp').value=text;
+    document.getElementById('msginp').focus();
+  }catch(e){typing.remove();document.getElementById('msginp').value='(AI unavailable — check ANTHROPIC_API_KEY in Vercel settings)';}
+  btn.textContent='✦ AI reply';btn.disabled=false;
+}
+
+async function aiBroadcast(){
+  const btn=document.getElementById('ai-bc-btn');
+  btn.textContent='✦ Writing…';btn.disabled=true;
+  const seg=document.getElementById('bcseg').value;
+  const ch=document.getElementById('bcch').value;
+  const prompt=`Write a short 2-sentence WhatsApp/SMS broadcast message for segment: "${seg}", channel: ${ch}. Use {{name}} for personalization. Warm and professional. Just the message text.`;
+  try{
+    const text=await callAI(prompt);
+    if(text)document.getElementById('bcmsg').value=text;
+  }catch(e){document.getElementById('bcmsg').value='Hi {{name}}, just checking in — we have something great for you!';}
+  btn.textContent='✦ AI write';btn.disabled=false;
+}
+
+function renderPipeline(){
+  document.getElementById('board').innerHTML=STAGES.map(s=>{
+    const ds=contacts.filter(c=>c.stage===s);
+    return`<div class="pcol" ondragover="event.preventDefault()" ondrop="drop(event,'${s}')"><div class="pcol-hd"><span>${SLABELS[s]}</span><span>${ds.length}</span></div>${ds.map(c=>`<div class="deal" draggable="true" ondragstart="dragStart(event,${c.id})" onclick="go('inbox');setTimeout(()=>openConv(${c.id}),60)"><div class="dn">${c.name}</div><div class="dv">Score ${c.score}</div><div style="display:flex;gap:4px;flex-wrap:wrap"><span class="chip ${c.ch==='WhatsApp'?'wa':'sms'}">${c.ch}</span>${c.score>=80?'<span class="chip hot">hot</span>':''}</div></div>`).join('')}</div>`;
+  }).join('');
+}
+function dragStart(e,id){dragId=id;}
+function drop(e,stage){if(!dragId)return;const c=contacts.find(x=>x.id===dragId);if(c)c.stage=stage;dragId=null;renderPipeline();renderDashboard();}
+
+function renderContacts(){
+  const allTags=[...new Set(contacts.flatMap(c=>c.tags))];
+  document.getElementById('tagfilters').innerHTML=allTags.map(t=>`<span class="tag${selTags.includes(t)?' on':''}" onclick="toggleTag('${t}')">${t}</span>`).join('');
+  const list=selTags.length?contacts.filter(c=>selTags.every(t=>c.tags.includes(t))):contacts;
+  document.getElementById('ctbody').innerHTML=list.map(c=>`<tr onclick="go('inbox');setTimeout(()=>openConv(${c.id}),60)"><td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="background:${c.bg};color:${c.tc}">${c.ini}</div>${c.name}</div></td><td style="color:var(--fg3)">${c.phone}</td><td><span class="chip ${c.ch==='WhatsApp'?'wa':'sms'}">${c.ch}</span></td><td><span class="sbadge ${SCLS[c.stage]}">${SLABELS[c.stage]}</span></td><td><div style="display:flex;align-items:center;gap:7px"><div class="score-bar"><div class="score-fill" style="width:${c.score}%;background:${c.score>=80?'#1D9E75':c.score>=50?'#BA7517':'#A32D2D'}"></div></div>${c.score}</div></td><td style="color:var(--fg3)">${c.last}</td><td><button class="btn sm" onclick="event.stopPropagation();go('inbox');setTimeout(()=>openConv(${c.id}),60)">Chat</button></td></tr>`).join('');
+}
+function toggleTag(t){selTags=selTags.includes(t)?selTags.filter(x=>x!==t):[...selTags,t];renderContacts();}
+
+function renderBroadcast(){
+  document.getElementById('tmplpills').innerHTML=templates.map(t=>`<span class="chip" style="cursor:pointer" onclick="useTmpl('${t}')">${t}</span>`).join('');
+  document.getElementById('pastcamp').innerHTML=campaigns.map(c=>`<div class="camp-row"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><b style="font-size:13px">${c.name}</b><span class="chip ${c.ch==='WhatsApp'?'wa':'sms'}">${c.ch}</span></div><div style="display:flex;gap:14px;font-size:11px;color:var(--fg3)"><span>Sent <b style="color:var(--fg)">${c.sent}</b></span><span>Opened <b style="color:var(--fg)">${c.opened}</b></span><span>Replied <b style="color:var(--fg)">${c.replied}</b></span><span style="margin-left:auto">${c.date}</span></div></div>`).join('');
+}
+function useTmpl(t){document.getElementById('bcmsg').value=tmplMsgs[t]||'';}
+function previewBC(){
+  const msg=document.getElementById('bcmsg').value;
+  const seg=document.getElementById('bcseg').value;
+  const cnt=seg.includes('Hot')?contacts.filter(c=>c.score>=80).length:seg.includes('Nurture')?contacts.filter(c=>c.stage==='nurture').length:contacts.length;
+  document.getElementById('bcres').style.color='var(--fg3)';
+  document.getElementById('bcres').textContent=`Preview: ${cnt} recipients — "${msg.slice(0,55)}${msg.length>55?'…':''}"`;
+}
+function sendBC(){
+  const msg=document.getElementById('bcmsg').value;
+  if(!msg){document.getElementById('bcres').style.color='var(--red)';document.getElementById('bcres').textContent='Please write a message first.';return;}
+  const ch=document.getElementById('bcch').value;
+  document.getElementById('bcres').style.color='var(--green)';
+  document.getElementById('bcres').textContent=`✓ Broadcast sent to ${contacts.length} contacts via ${ch}!`;
+  campaigns.unshift({name:'New campaign',ch,sent:contacts.length,opened:0,replied:0,date:'Now'});
+  renderBroadcast();
+}
+
+function renderAutomation(){
+  document.getElementById('flowlist').innerHTML=flows.map((f,i)=>`<div class="flow-row"><div class="flow-icon" style="background:${f.ic};color:${f.tc}">${f.icon}</div><div style="flex:1"><div style="font-size:13px;font-weight:500;margin-bottom:2px">${f.trig} → ${f.act}</div><div style="font-size:12px;color:var(--fg3)">${f.msg}</div></div><button class="btn sm" onclick="delFlow(${i})">✕</button></div>`).join('');
+}
+function delFlow(i){flows.splice(i,1);renderAutomation();}
+function addFlow(){
+  flows.push({trig:document.getElementById('ftrig').value,act:document.getElementById('fact').value,msg:document.getElementById('fmsg').value||'(no value)',ic:'#EEEDFE',tc:'#3C3489',icon:'✦'});
+  document.getElementById('fres').textContent='✓ Flow added!';
+  setTimeout(()=>{document.getElementById('fres').textContent='';},2000);
+  document.getElementById('fmsg').value='';renderAutomation();
+}
+
+function openCapture(){document.getElementById('capture-overlay').classList.add('open');document.getElementById('cf-form-wrap').style.display='';document.getElementById('cf-success').style.display='none';}
+function closeCapture(){document.getElementById('capture-overlay').classList.remove('open');}
+function submitCapture(){
+  const name=document.getElementById('cf-name').value.trim();
+  const phone=document.getElementById('cf-phone').value.trim();
+  if(!name||!phone){document.getElementById('cf-err').textContent='Name and phone are required.';return;}
+  const ch=document.getElementById('cf-ch').value;
+  const note=document.getElementById('cf-note').value;
+  const ini=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  const colors=[['#E1F5EE','#085041'],['#E6F1FB','#0C447C'],['#FAEEDA','#633806'],['#EEEDFE','#3C3489']];
+  const [bg,tc]=colors[contacts.length%colors.length];
+  contacts.unshift({id:Date.now(),name,ini,phone,ch,stage:'capture',score:20,last:'Just now',tags:['new'],bg,tc,source:'Manual',msgs:[{d:'in',t:note||'New lead added manually.',ts:'Just now'}]});
+  document.getElementById('cf-form-wrap').style.display='none';
+  document.getElementById('cf-success').style.display='block';
+  document.getElementById('cf-name').value='';document.getElementById('cf-phone').value='';document.getElementById('cf-note').value='';
+  renderDashboard();renderContacts();renderPipeline();
+  document.getElementById('inbox-badge').textContent=contacts.filter(c=>c.stage==='capture').length;
+}
+
+function copyEmbed(){
+  const code=document.getElementById('embed-code').textContent;
+  navigator.clipboard.writeText(code).then(()=>alert('Embed code copied!')).catch(()=>alert('Copy manually: '+code));
+}
+
+renderDashboard();renderAutomation();renderBroadcast();
+</script>
+</body>
+</html>
